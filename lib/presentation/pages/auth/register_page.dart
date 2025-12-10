@@ -39,7 +39,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
     super.dispose();
   }
 
-  void _handleRegister() async {
+  void _handleRegister() {
     // 1. Validasi Password Match
     if (_passwordController.text != _confirmController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -56,27 +56,15 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
       return;
     }
 
-    // 3. Register Process
-    final authLogic = Provider.of<AuthLogic>(context, listen: false);
-    
-    // NOTE: Di React code, ini navigate ke '/character-select'.
-    // Disini kita langsung register dulu untuk testing Dashboard.
-    final error = await authLogic.register(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-      name: _nameController.text.trim(),
-      selectedCharacter: 'cat', // Default sementara
-      petName: 'Pet-mu',        // Default sementara
+    // 3. Navigasi ke Character Select (Bawa Data)
+    context.push(
+      '/character-select', 
+      extra: {
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text.trim(),
+        'name': _nameController.text.trim(),
+      },
     );
-
-    if (mounted) {
-      if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
-      } else {
-         // Sukses -> Router otomatis redirect ke Dashboard
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Akun berhasil dibuat!")));
-      }
-    }
   }
 
   @override
@@ -103,7 +91,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                   // --- HEADER ---
                   SlideTransition(
                     position: _offsetAnimation,
-                    child: const Text("🐱", style: TextStyle(fontSize: 60)), 
+                    child: const Text("😸", style: TextStyle(fontSize: 60)), 
                   ),
                   const SizedBox(height: 16),
                   const Text(

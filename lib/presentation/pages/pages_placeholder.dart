@@ -31,14 +31,14 @@ class ReegisterPage extends StatelessWidget {
 }
 
 // --- Onboarding ---
-class CharacterSelectPage extends StatelessWidget {
-  const CharacterSelectPage({super.key});
+class ChaaracterSelectPage extends StatelessWidget {
+  const ChaaracterSelectPage({super.key});
   @override
   Widget build(BuildContext context) => const Scaffold(body: Center(child: Text("Character Select Page")));
 }
 
-class PetNamingPage extends StatelessWidget {
-  const PetNamingPage({super.key});
+class PeetNamingPage extends StatelessWidget {
+  const PeetNamingPage({super.key});
   @override
   Widget build(BuildContext context) => const Scaffold(body: Center(child: Text("Pet Naming Page")));
 }

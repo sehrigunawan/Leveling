@@ -5,6 +5,9 @@ import '../presentation/pages/landing_page.dart';
 import '../presentation/pages/auth/register_page.dart';
 import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/forgot_password_page.dart';
+import '../presentation/pages/onboarding/character_select_page.dart';
+import '../presentation/pages/onboarding/pet_naming_page.dart';
+
 
 // Import halaman-halaman (Gunakan placeholder dulu agar tidak error)
 import '../presentation/pages/pages_placeholder.dart';
@@ -28,7 +31,10 @@ class AppRouter {
       // Daftar halaman yang bisa diakses tanpa login
       final isPublicRoute = state.uri.path == '/' || 
                             state.uri.path == '/login' || 
-                            state.uri.path == '/register';
+                            state.uri.path == '/register'||
+                            state.uri.path == '/forgot-password'||
+                            state.uri.path == '/character-select'||
+                            state.uri.path == '/pet-naming';
 
       // 1. Jika masih loading, jangan lakukan apa-apa (tunggu splash selesai)
       if (isLoading) return null;
