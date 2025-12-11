@@ -7,6 +7,10 @@ import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/forgot_password_page.dart';
 import '../presentation/pages/onboarding/character_select_page.dart';
 import '../presentation/pages/onboarding/pet_naming_page.dart';
+import '../presentation/pages/main/dashboard_page.dart';
+import '../presentation/pages/main/main_wrapper.dart';
+import '../presentation/pages/main/goals_page.dart';
+import '../presentation/pages/main/goal_detail_page.dart';
 
 
 // Import halaman-halaman (Gunakan placeholder dulu agar tidak error)
@@ -85,11 +89,18 @@ class AppRouter {
       // --- PROTECTED ROUTES ---
       GoRoute(
         path: '/dashboard',
-        builder: (context, state) => const DashboardPage(),
+        builder: (context, state) => const MainWrapper(),
       ),
       GoRoute(
         path: '/goals',
-        builder: (context, state) => const GoalsPage(),
+        builder: (context, state) => const MainWrapper(),
+      ),
+      GoRoute(
+        path: '/goal-detail/:goalId',
+        builder: (context, state) {
+          final id = state.pathParameters['goalId']!;
+          return GoalDetailPage(goalId: id);
+        },
       ),
       GoRoute(
         path: '/shop',
@@ -99,11 +110,6 @@ class AppRouter {
         path: '/profile',
         builder: (context, state) => const ProfilePage(),
       ),
-      // Contoh detail page dengan parameter
-      // GoRoute(
-      //   path: '/goal-detail/:goalId',
-      //   builder: (context, state) => GoalDetailPage(id: state.pathParameters['goalId']!),
-      // ),
     ],
   );
 }

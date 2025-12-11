@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-// import '../../pages/pages_placeholder.dart'; // <--- HAPUS BARIS INI (Unused import)
 import '../../../core/constants/app_colors.dart';
+import '../main/dashboard_page.dart';
+import '../pages_placeholder.dart';
+import 'goals_page.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -13,11 +15,11 @@ class _MainWrapperState extends State<MainWrapper> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    const Center(child: Text("Dashboard Screen")), 
-    const Center(child: Text("Goals Screen")),
-    const Center(child: Text("Challenge Screen")),
-    const Center(child: Text("Stats Screen")),
-    const Center(child: Text("Profile Screen")),
+    const DashboardPage(),      // Index 0: Home
+    const GoalsPage(),          // Index 1: Goals
+    const ShopPage(),           // Index 2: Challenge/Shop (Sesuaikan ikon)
+    const ProfilePage(),        // Index 3: Statistik 
+    const ProfilePage(),        // Index 4: Profile
   ];
 
   void _onItemTapped(int index) {
@@ -33,8 +35,6 @@ class _MainWrapperState extends State<MainWrapper> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
-            // Ganti .withOpacity(0.05) menjadi .withValues(alpha: 0.05) untuk Flutter terbaru
-            // Atau tetap withOpacity jika errornya hanya warning
             BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
           ],
         ),

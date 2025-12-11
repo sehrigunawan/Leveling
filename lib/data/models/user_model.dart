@@ -1,17 +1,20 @@
+// ignore: unused_import
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
   final String uid;
   final String email;
   final String name;
-  final String selectedCharacter; // 'cat', 'dog', 'hamster'
+  final String selectedCharacter;
   final String petName;
   final int petLevel;
   final int petExp;
-  final int totalCoins;
-  final int currentStreak;
-  final int longestStreak;
-  final bool darkMode;
+  final int coins;
+  final int level;
+  final int currentXp;
+  final int targetXp;
+  final int streak;
+  final int totalMinutes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -23,10 +26,12 @@ class UserModel {
     required this.petName,
     this.petLevel = 1,
     this.petExp = 0,
-    this.totalCoins = 0,
-    this.currentStreak = 0,
-    this.longestStreak = 0,
-    this.darkMode = false,
+    this.coins = 0,
+    this.level = 1,
+    this.currentXp = 0,
+    this.targetXp = 100, // Target awal
+    this.streak = 0,
+    this.totalMinutes = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -36,22 +41,26 @@ class UserModel {
     return UserModel(
       uid: data['uid'] ?? '',
       email: data['email'] ?? '',
-      name: data['name'] ?? '',
+      name: data['name'] ?? 'User',
       selectedCharacter: data['selectedCharacter'] ?? 'cat',
-      petName: data['petName'] ?? '',
-      petLevel: (data['petLevel'] ?? 1).toInt(),
-      petExp: (data['petExp'] ?? 0).toInt(),
-      totalCoins: (data['totalCoins'] ?? 0).toInt(),
-      currentStreak: (data['currentStreak'] ?? 0).toInt(),
-      longestStreak: (data['longestStreak'] ?? 0).toInt(),
-      darkMode: data['darkMode'] ?? false,
-      // Handle konversi Timestamp Firebase ke DateTime Dart
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      petName: data['petName'] ?? 'Pet',
+      createdAt: data['createdAt'] != null 
+          ? DateTime.parse(data['createdAt']) 
+          : DateTime.now(),
+      updatedAt: data['updatedAt'] != null 
+          ? DateTime.parse(data['updatedAt']) 
+          : DateTime.now(),
+      // Ambil stats, default ke 0/1 jika belum ada
+      level: data['level'] ?? 1,
+      currentXp: data['currentXp'] ?? 0,
+      targetXp: data['targetXp'] ?? 100,
+      streak: data['streak'] ?? 0,
+      totalMinutes: data['totalMinutes'] ?? 0,
+      coins: data['coins'] ?? 0,
     );
   }
 
-  // Mengubah Object Dart menjadi Map untuk disimpan ke Firestore
+  // Konversi dari Object Dart ke Firestore Map
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -59,14 +68,14 @@ class UserModel {
       'name': name,
       'selectedCharacter': selectedCharacter,
       'petName': petName,
-      'petLevel': petLevel,
-      'petExp': petExp,
-      'totalCoins': totalCoins,
-      'currentStreak': currentStreak,
-      'longestStreak': longestStreak,
-      'darkMode': darkMode,
-      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
+      'createdAt': createdAt!.toIso8601String(),
+      'updatedAt': updatedAt!.toIso8601String(),
+      'level': level,
+      'currentXp': currentXp,
+      'targetXp': targetXp,
+      'streak': streak,
+      'totalMinutes': totalMinutes,
+      'coins': coins,
     };
   }
 }
