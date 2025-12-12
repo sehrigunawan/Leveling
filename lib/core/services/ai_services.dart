@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AIService {
-  // Gunakan API Key yang sudah terbukti valid (berakhiran ...QVI)
-  static const String _apiKey = 'AIzaSyDVOw4jcyhUCaj8nAWyPCgRH_us4ld_ljE';
+  static String get _apiKey {
+    return dotenv.env['GEMINI_API_KEY'] ?? '';
+  }
 
   Future<List<Map<String, dynamic>>> generateLearningPlan({
     required String goalName,
@@ -13,8 +15,12 @@ class AIService {
     required int dailyMinutes,
   }) async {
     try {
-      // --- GUNAKAN MODEL TERBARU YANG VALID ---
-      // 'gemini-1.5-flash' adalah standar gratis saat ini.
+
+      if (_apiKey.isEmpty) {
+        print("⛔ API KEY KOSONG! Cek file .env anda.");
+        return [];
+      }
+
       final model = GenerativeModel(
         model: 'gemini-2.5-flash-lite', 
         apiKey: _apiKey,
@@ -69,14 +75,13 @@ class AIService {
     } 
     catch (e) {
       print("🔥 AI Error: $e");
-      // Jika gemini-1.5-flash gagal, return list kosong agar app tidak crash
       return []; 
     }
   }
   Future<List<Map<String, dynamic>>> generateWeeklyChallenges() async {
     try {
       final model = GenerativeModel(
-        model: 'gemini-1.5-flash', 
+        model: 'gemini-2.5-flash-lite', 
         apiKey: _apiKey,
         generationConfig: GenerationConfig(responseMimeType: 'application/json'),
       );
