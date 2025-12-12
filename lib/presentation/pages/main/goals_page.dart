@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/goal_services.dart';
-import '../../../data/models/goals_model.dart';
+import '../../../data/models/goals_model.dart'; // Pastikan nama file model benar (goal_model.dart atau goals_model.dart)
 import '../../../logic/auth_logic.dart';
-import '../../widgets/dialogs/add_goal_dialog.dart'; // Import Dialog yang baru dibuat
+import '../../widgets/dialogs/add_goal_dialog.dart';
 
 class GoalsPage extends StatelessWidget {
   const GoalsPage({super.key});
@@ -37,6 +38,7 @@ class GoalsPage extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brandPurple,
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   )
                 ],
@@ -48,15 +50,18 @@ class GoalsPage extends StatelessWidget {
               child: StreamBuilder<List<GoalModel>>(
                 stream: goalService.getUserGoals(user.uid),
                 builder: (context, snapshot) {
-                  // 1. Cek Error (Biasanya karena Index belum dibuat)
+                  // Cek Error (Biasanya karena Index Firestore belum dibuat)
                   if (snapshot.hasError) {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          "Error: ${snapshot.error}", 
-                          style: const TextStyle(color: Colors.red),
-                          textAlign: TextAlign.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("Terjadi kesalahan atau Index Database belum dibuat.", textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                            const SizedBox(height: 8),
+                            Text("${snapshot.error}", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                          ],
                         ),
                       ),
                     );
@@ -67,7 +72,7 @@ class GoalsPage extends StatelessWidget {
                   }
                   
                   final goals = snapshot.data ?? [];
-                  
+
                   if (goals.isEmpty) {
                     return Center(
                       child: Column(
@@ -90,7 +95,8 @@ class GoalsPage extends StatelessWidget {
                     itemCount: goals.length,
                     itemBuilder: (context, index) {
                       final goal = goals[index];
-                      final progress = goal.completedDays.length / goal.durationDays;
+                      // Menghindari pembagian dengan nol
+                      final progress = goal.durationDays == 0 ? 0.0 : (goal.completedDays.length / goal.durationDays);
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -100,7 +106,7 @@ class GoalsPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AppColors.border),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
                           ],
                         ),
                         child: Column(
@@ -110,18 +116,28 @@ class GoalsPage extends StatelessWidget {
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(Icons.track_changes, color: AppColors.brandPurple),
-                                    const SizedBox(width: 8),
-                                    Text(goal.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(color: AppColors.bgPurple, borderRadius: BorderRadius.circular(8)),
+                                      child: const Icon(Icons.track_changes, color: AppColors.brandPurple, size: 20),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(goal.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                        Text(goal.skill, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                                      ],
+                                    ),
                                   ],
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppColors.brandPurple.withOpacity(0.1),
+                                    color: AppColors.brandPurple.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Text(goal.status, style: const TextStyle(fontSize: 10, color: AppColors.brandPurple, fontWeight: FontWeight.bold)),
+                                  child: Text(goal.status.toUpperCase(), style: const TextStyle(fontSize: 10, color: AppColors.brandPurple, fontWeight: FontWeight.bold)),
                                 )
                               ],
                             ),
@@ -146,27 +162,33 @@ class GoalsPage extends StatelessWidget {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                LinearProgressIndicator(
-                                  value: progress,
-                                  backgroundColor: Colors.grey.shade100,
-                                  color: AppColors.brandPurple,
+                                ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  minHeight: 8,
+                                  child: LinearProgressIndicator(
+                                    value: progress.clamp(0.0, 1.0),
+                                    backgroundColor: Colors.grey.shade100,
+                                    color: AppColors.brandPurple,
+                                    minHeight: 8,
+                                  ),
                                 )
                               ],
                             ),
                             const SizedBox(height: 16),
+                            
+                            // --- TOMBOL LANJUT ---
                             SizedBox(
                               width: double.infinity,
                               child: OutlinedButton(
                                 onPressed: () {
-                                  // TODO: Navigate to Goal Detail
+                                  // NAVIGASI KE DETAIL GOAL
+                                  context.push('/goal-detail/${goal.id}'); 
                                 },
                                 style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
                                   side: const BorderSide(color: AppColors.brandPurple),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
-                                child: const Text("Lanjut", style: TextStyle(color: AppColors.brandPurple)),
+                                child: const Text("Lanjut", style: TextStyle(color: AppColors.brandPurple, fontWeight: FontWeight.bold)),
                               ),
                             )
                           ],

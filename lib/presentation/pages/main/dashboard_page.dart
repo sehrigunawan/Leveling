@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../logic/auth_logic.dart';
-import '../../../core/services/goal_services.dart';
+import '../../../core/services/goal_services.dart'; 
 import '../../../data/models/goals_model.dart';
+import '../../widgets/dialogs/add_goal_dialog.dart'; // 1. WAJIB IMPORT INI
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -22,11 +23,11 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Ambil Data User
+    // Ambil Data User dari Provider
     final userModel = context.watch<AuthLogic>().userModel;
-    final user = context.watch<AuthLogic>().firebaseUser; // Butuh UID untuk query goals
+    final user = context.watch<AuthLogic>().firebaseUser; 
     
-    // Setup Variable Tampilan
+    // Setup Variable Tampilan (Default Value jika null)
     final userName = userModel?.name ?? "Teman";
     final petName = userModel?.petName ?? "Pet-mu";
     final selectedChar = userModel?.selectedCharacter ?? "cat";
@@ -46,7 +47,7 @@ class _DashboardPageState extends State<DashboardPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- HEADER SECTION (Tetap Sama) ---
+            // --- HEADER SECTION ---
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 32),
@@ -68,13 +69,13 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         Text("Halo, $userName! 👋", style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 8),
-                        Text("$petName siap membantu belajar hari ini", style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9))),
+                        Text("$petName siap membantu belajar hari ini", style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.9))),
                       ],
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withOpacity(0.3))),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withValues(alpha: 0.3))),
                     child: Row(
                       children: [
                         const Text("🪙", style: TextStyle(fontSize: 16)),
@@ -87,17 +88,13 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
 
-            // --- MAIN CONTENT (DI BUNGKUS STREAM BUILDER) ---
-            // Kita bungkus area konten dengan StreamBuilder Goal agar datanya realtime
+            // --- MAIN CONTENT ---
             if (user != null)
               StreamBuilder<List<GoalModel>>(
                 stream: GoalService().getUserGoals(user.uid),
                 builder: (context, snapshot) {
-                  // Hitung Data Goals
                   final goals = snapshot.data ?? [];
                   final activeGoalsCount = goals.where((g) => g.status == 'active').length;
-                  
-                  // Ambil 3 Goal Terbaru
                   final recentGoals = goals.take(3).toList();
 
                   return Padding(
@@ -107,7 +104,6 @@ class _DashboardPageState extends State<DashboardPage> {
                         // 1. Stats Grid
                         Row(
                           children: [
-                            // Total Goals (Sekarang Realtime!)
                             _buildStatCard("Total Goals", "$activeGoalsCount", "Sedang aktif", AppColors.brandPurple),
                             const SizedBox(width: 12),
                             _buildStatCard("Menit Latihan", "$totalMinutes", "Total menit", AppColors.brandOrange),
@@ -126,7 +122,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                 label: "Tambah Goal",
                                 icon: Icons.add,
                                 colors: [AppColors.brandPurple, AppColors.brandPink],
-                                onTap: () => context.push('/goals'),
+                                // 2. PERBAIKAN: Buka Dialog Tambah Goal
+                                onTap: () {
+                                  showDialog(context: context, builder: (_) => const AddGoalDialog());
+                                },
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -135,9 +134,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                 label: "Mulai Latihan",
                                 icon: Icons.play_arrow_rounded,
                                 colors: [AppColors.brandGreen, AppColors.brandYellow],
-                                onTap: () {
-                                  // Nanti arahkan ke Challenge / Timer
-                                },
+                                // 3. PERBAIKAN: Pindah ke Tab Goals
+                                onTap: () => context.go('/goals'),
                               ),
                             ),
                           ],
@@ -145,72 +143,75 @@ class _DashboardPageState extends State<DashboardPage> {
 
                         const SizedBox(height: 24),
 
-                        // 3. Pet Progress Card (Tetap Sama)
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.border),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text("Perkembangan Pet-mu", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(colors: [Colors.purple.shade50, Colors.pink.shade50], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text(emojis[0], style: const TextStyle(fontSize: 40)),
-                                        Row(
-                                          children: [
-                                            Text(emojis[0], style: const TextStyle(fontSize: 20)),
-                                            if (emojis.length > 1) Text(emojis[1], style: const TextStyle(fontSize: 20)),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                        // 3. Pet Progress Card (KLIK -> PET PAGE)
+                        GestureDetector(
+                          onTap: () => context.push('/pet'), // 4. PERBAIKAN: Ke Halaman Pet
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.border),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Perkembangan Pet-mu", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(colors: [Colors.purple.shade50, Colors.pink.shade50], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Column(
                                         children: [
-                                          Text(petName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                          Text("Level $level • Semangat!", style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                                          const SizedBox(height: 8),
-                                          Container(
-                                            height: 10,
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                                            child: FractionallySizedBox(
-                                              alignment: Alignment.centerLeft,
-                                              widthFactor: xpProgress.clamp(0.0, 1.0),
-                                              child: Container(decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.brandPurple, AppColors.brandPink]), borderRadius: BorderRadius.circular(10))),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Align(alignment: Alignment.centerRight, child: Text("$currentXp / $targetXp XP", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.brandPurple)))
+                                          Text(emojis[0], style: const TextStyle(fontSize: 40)),
+                                          Row(
+                                            children: [
+                                              Text(emojis[0], style: const TextStyle(fontSize: 20)),
+                                              if (emojis.length > 1) Text(emojis[1], style: const TextStyle(fontSize: 20)),
+                                            ],
+                                          )
                                         ],
                                       ),
-                                    )
-                                  ],
-                                ),
-                              )
-                            ],
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(petName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                            Text("Level $level • Semangat!", style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                                            const SizedBox(height: 8),
+                                            Container(
+                                              height: 10,
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                                              child: FractionallySizedBox(
+                                                alignment: Alignment.centerLeft,
+                                                widthFactor: xpProgress.clamp(0.0, 1.0),
+                                                child: Container(decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.brandPurple, AppColors.brandPink]), borderRadius: BorderRadius.circular(10))),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Align(alignment: Alignment.centerRight, child: Text("$currentXp / $targetXp XP", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.brandPurple)))
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         ),
 
                         const SizedBox(height: 24),
 
-                        // 4. Recent Goals List (SEKARANG REALTIME)
+                        // 4. Recent Goals List
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
@@ -225,7 +226,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                 children: [
                                   const Text("Goals Terbaru", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                   TextButton(
-                                    onPressed: () => context.push('/goals'), 
+                                    // 5. PERBAIKAN: Tombol Lihat Semua -> Pindah Tab
+                                    onPressed: () => context.go('/goals'), 
                                     child: const Text("Lihat Semua", style: TextStyle(color: AppColors.textMuted))
                                   ),
                                 ],
@@ -238,11 +240,15 @@ class _DashboardPageState extends State<DashboardPage> {
                                   child: Text("Belum ada goal aktif.", style: TextStyle(color: AppColors.textMuted)),
                                 )
                               else
-                                ...recentGoals.map((goal) => _buildGoalItem(
-                                  goal.name, 
-                                  "${goal.dailyMinutes} menit/hari", 
-                                  goal.completedDays.length, 
-                                  goal.durationDays
+                                ...recentGoals.map((goal) => GestureDetector(
+                                  // 6. PERBAIKAN: Klik Item -> Detail Page
+                                  onTap: () => context.push('/goal-detail/${goal.id}'),
+                                  child: _buildGoalItem(
+                                    goal.name, 
+                                    "${goal.dailyMinutes} menit/hari", 
+                                    goal.completedDays.length, 
+                                    goal.durationDays
+                                  ),
                                 )).toList(),
                             ],
                           ),
@@ -255,7 +261,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 }
               )
             else
-              const Center(child: CircularProgressIndicator()) // Loading user state
+              const Center(child: CircularProgressIndicator())
           ],
         ),
       ),
@@ -287,7 +293,7 @@ class _DashboardPageState extends State<DashboardPage> {
       onTap: onTap,
       child: Container(
         height: 64,
-        decoration: BoxDecoration(gradient: LinearGradient(colors: colors), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: colors[0].withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))]),
+        decoration: BoxDecoration(gradient: LinearGradient(colors: colors), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: colors[0].withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))]),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: Colors.white), const SizedBox(width: 8), Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]),
       ),
     );

@@ -11,10 +11,16 @@ import '../presentation/pages/main/dashboard_page.dart';
 import '../presentation/pages/main/main_wrapper.dart';
 import '../presentation/pages/main/goals_page.dart';
 import '../presentation/pages/main/goal_detail_page.dart';
+import '../presentation/pages/main/daily_tips_page.dart';
+import '../presentation/pages/main/challenges_page.dart';
+import '../presentation/pages/main/challenge_detail_page.dart';
+import '../presentation/pages/main/statistics_page.dart';
+import '../presentation/pages/main/profile_page.dart';
+import '../presentation/pages/main/pet_page.dart';
+import '../presentation/pages/main/shop_page.dart';
+import '../data/models/goals_model.dart';
+import '../data/models/challenge_model.dart';
 
-
-// Import halaman-halaman (Gunakan placeholder dulu agar tidak error)
-import '../presentation/pages/pages_placeholder.dart';
 
 class AppRouter {
   final AuthLogic authLogic;
@@ -101,6 +107,36 @@ class AppRouter {
           final id = state.pathParameters['goalId']!;
           return GoalDetailPage(goalId: id);
         },
+      ),
+      GoRoute(
+        path: '/daily-tips',
+        builder: (context, state) {
+          // Kita kirim Data via 'extra' karena butuh Object GoalModel lengkap
+          final map = state.extra as Map<String, dynamic>;
+          final goal = map['goal'] as GoalModel;
+          final day = map['day'] as int;
+
+          return DailyTipsPage(goal: goal, dayNumber: day);
+        },
+      ),
+      GoRoute(
+        path: '/challenge-detail',
+        builder: (context, state) {
+          final challenge = state.extra as ChallengeModel;
+          return ChallengeDetailPage(challenge: challenge);
+        },
+      ),
+      // GoRoute(
+      //   path: '/shop',
+      //   builder: (context, state) => const ShopPage(),
+      // ),
+      GoRoute(
+        path: '/Statistic',
+        builder: (context, state) => const StatisticsPage(),
+      ),
+      GoRoute(
+        path: '/pet',
+        builder: (context, state) => const PetPage(),
       ),
       GoRoute(
         path: '/shop',

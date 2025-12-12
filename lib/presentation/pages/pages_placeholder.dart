@@ -61,8 +61,8 @@ class ShopPage extends StatelessWidget {
   Widget build(BuildContext context) => const Scaffold(body: Center(child: Text("Shop Page")));
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+class ProofilePage extends StatelessWidget {
+  const ProofilePage({super.key});
   @override
   Widget build(BuildContext context) => const Scaffold(body: Center(child: Text("Profile Page")));
 }

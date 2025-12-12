@@ -155,34 +155,15 @@ class GoalDetailPage extends StatelessWidget {
 
                     return GestureDetector(
                       onTap: () {
-                        // Jika sudah selesai, abaikan klik
-                        if (isCompleted) return;
-
-                        // Buka Timer Dialog
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false, 
-                          builder: (_) => GoalTimerDialog(
-                            targetMinutes: goal.dailyMinutes,
-                            dayTitle: "Hari $dayNum: $title",
-                            onComplete: (minutes) async {
-                              if (user == null) return;
-                              
-                              // Simpan ke Firebase
-                              await goalService.completeGoalDay(goal.id, user.uid, dayNum, minutes);
-                              
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Yey! Hari ini selesai 🎉"), 
-                                    backgroundColor: Colors.green
-                                  )
-                                );
-                              }
-                            },
-                          ),
+                        context.push(
+                          '/daily-tips', 
+                          extra: {
+                            'goal': goal,
+                            'day': dayNum,
+                          }
                         );
                       },
+
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(

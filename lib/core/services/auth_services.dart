@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../../data/models/user_model.dart'; 
+import '../../data/models/user_model.dart';
+import '../../data/models/ability_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -118,6 +119,77 @@ class AuthService {
     } catch (e) {
       print("Logout error: $e");
     }
+  }
+
+  Future<void> updatePetName(String uid, String newName) async {
+    try {
+      await _db.collection('users').doc(uid).update({'petName': newName});
+    } catch (e) {
+      print("Error update pet name: $e");
+    }
+  }
+
+  Future<Map<String, dynamic>> buyAbility(String userId, Ability ability) async {
+    final userRef = _db.collection('users').doc(userId);
+    
+    return _db.runTransaction((transaction) async {
+      final userDoc = await transaction.get(userRef);
+      if (!userDoc.exists) throw Exception("User not found");
+
+      final currentCoins = userDoc.data()?['coins'] ?? 0;
+
+      // 1. Cek Koin Cukup?
+      if (currentCoins < ability.price) {
+        return {'success': false, 'error': 'Koin tidak cukup!'};
+      }
+
+      // 2. Kurangi Koin
+      transaction.update(userRef, {
+        'coins': FieldValue.increment(-ability.price),
+      });
+
+      // 3. Tambah ke Inventory (Subcollection 'inventory')
+      final itemRef = userRef.collection('inventory').doc(ability.id);
+      final itemDoc = await transaction.get(itemRef);
+
+      if (itemDoc.exists) {
+        // Jika sudah punya, tambah quantity (Stackable)
+        transaction.update(itemRef, {
+          'quantity': FieldValue.increment(1),
+        });
+      } else {
+        // Jika belum punya, buat baru
+        transaction.set(itemRef, {
+          'id': ability.id,
+          'name': ability.name,
+          'icon': ability.icon,
+          'description': ability.description,
+          'quantity': 1,
+          'acquiredAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      return {'success': true};
+    });
+  }
+
+  // --- STREAM INVENTORY USER ---
+  Stream<List<Ability>> getUserInventory(String userId) {
+    return _db.collection('users').doc(userId).collection('inventory').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        // Mapping dari Firestore ke Ability Model
+        return Ability(
+          id: data['id'],
+          name: data['name'],
+          description: data['description'],
+          icon: data['icon'],
+          price: 0, // Harga beli tidak relevan di inventory
+          isOwned: true,
+          quantity: data['quantity'] ?? 1,
+        );
+      }).toList();
+    });
   }
 
   // --- UTILS ---

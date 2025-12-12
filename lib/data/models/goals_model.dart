@@ -4,34 +4,41 @@ class DailyPlan {
   final String topic;
   final String description;
   final bool isCompleted;
+  // --- FIELD BARU ---
+  final List<String> references; 
 
   DailyPlan({
     required this.day,
     required this.topic,
     required this.description,
     this.isCompleted = false,
+    this.references = const [], // Default kosong
   });
 
-  // Konversi dari JSON/Map ke Object
   factory DailyPlan.fromMap(Map<String, dynamic> map) {
     return DailyPlan(
       day: map['day'] ?? 0,
       topic: map['topic'] ?? '',
       description: map['description'] ?? '',
       isCompleted: map['isCompleted'] ?? false,
+      // --- AMBIL LIST REFERENSI DARI JSON ---
+      references: List<String>.from(map['references'] ?? []),
     );
   }
 
-  // Konversi dari Object ke JSON/Map
   Map<String, dynamic> toMap() {
     return {
       'day': day,
       'topic': topic,
       'description': description,
       'isCompleted': isCompleted,
+      // --- SIMPAN KE DATABASE ---
+      'references': references,
     };
   }
 }
+
+// ... (Class GoalModel di bawahnya biarkan tetap sama)
 
 // 2. Class Utama GoalModel
 class GoalModel {
